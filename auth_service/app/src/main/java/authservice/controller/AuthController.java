@@ -16,6 +16,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import authservice.request.PasswordResetRequestDTO;
+import authservice.request.PasswordUpdateRequestDTO;
+import authservice.service.PasswordResetService;
 
 import java.util.Objects;
 
@@ -32,6 +36,9 @@ public class AuthController
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @PostMapping("auth/v1/signup")
     public ResponseEntity SignUp(@RequestBody UserInfoDto userInfoDto){
@@ -60,6 +67,25 @@ public class AuthController
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
     }
+
+        @PostMapping("/auth/v1/password-reset-request")
+        public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequestDTO request) {
+            String token = passwordResetService.createPasswordResetToken(request.getEmail());
+            if (token == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            // TODO: Send email with token (implement email notification)
+            return ResponseEntity.ok("Password reset token generated. Token: " + token);
+        }
+
+        @PostMapping("/auth/v1/password-update")
+        public ResponseEntity<?> updatePassword(@RequestBody PasswordUpdateRequestDTO request) {
+            boolean success = passwordResetService.updatePassword(request.getToken(), request.getNewPassword());
+            if (!success) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired token");
+            }
+            return ResponseEntity.ok("Password updated successfully");
+        }
 
     @GetMapping("/health")
     public ResponseEntity<Boolean> checkHealth(){

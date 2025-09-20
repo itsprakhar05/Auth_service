@@ -51,4 +51,11 @@ public class UserInfo {
 
     private Set<UserRole> roles = new HashSet<>();
 
+        // Password reset token and expiration
+        @Column(name = "password_reset_token")
+        private String passwordResetToken;
+
+        @Column(name = "password_reset_token_expiry")
+        private Long passwordResetTokenExpiry;
+
 }
